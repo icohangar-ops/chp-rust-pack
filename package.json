@@ -19,10 +19,12 @@
     "bin",
     "index.js",
     "pack.js",
+    "safe-path.js",
     "README.md"
   ],
   "scripts": {
-    "check": "node --check bin/chp-rust-pack.js",
+    "check": "node --check bin/chp-rust-pack.js && node --check safe-path.js",
+    "test": "node --test test/safe-path.test.js",
     "show": "node ./bin/chp-rust-pack.js show",
     "init": "node ./bin/chp-rust-pack.js init ./chp-rust-pack"
   },
