@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import process from "node:process";
 
 import {
@@ -12,6 +12,7 @@ import {
   buildConsumerReadme,
   getVariant,
 } from "../index.js";
+import { resolveWithinBase } from "../safe-path.js";
 
 function parseArgs(argv) {
   const args = [...argv];
@@ -49,8 +50,9 @@ function usage() {
 
 function writeBundle(targetDir, variantName) {
   const bundle = buildBundle(variantName);
+  const baseDir = resolve(targetDir);
   for (const [relativePath, contents] of Object.entries(bundle.files)) {
-    const filePath = join(targetDir, relativePath);
+    const filePath = resolveWithinBase(baseDir, relativePath);
     mkdirSync(dirname(filePath), { recursive: true });
     writeFileSync(filePath, contents, "utf8");
   }
@@ -89,7 +91,10 @@ try {
   }
 
   if (command === "init") {
-    const targetDir = resolve(positional[0] ?? "./chp-rust-pack");
+    const dest = positional[0] ?? "./chp-rust-pack";
+    const targetDir = isAbsolute(dest)
+      ? resolve(dest)
+      : resolveWithinBase(process.cwd(), dest);
     mkdirSync(targetDir, { recursive: true });
     const manifest = writeBundle(targetDir, variant.key);
     console.log(`Wrote ${variant.brand} pack to ${targetDir}`);
